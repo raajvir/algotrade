@@ -1,0 +1,30 @@
+name: EMA bot
+
+on:
+  schedule:
+    - cron: "7 * * * *"   # every hour at :07 (UTC); checks stop loss / take profit hourly
+  workflow_dispatch:       # lets you run it manually from the Actions tab
+
+concurrency:
+  group: ema-bot
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python bot.py
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          SYMBOL: ${{ vars.SYMBOL || 'BTC/USD' }}
+          ALPACA_PAPER: ${{ vars.ALPACA_PAPER || 'true' }}
+          LIVE_TRADING_CONFIRMED: ${{ vars.LIVE_TRADING_CONFIRMED || '' }}
+          MAX_ORDER_USD: ${{ vars.MAX_ORDER_USD || '1000' }}
+          DRY_RUN: ${{ vars.DRY_RUN || 'false' }}
